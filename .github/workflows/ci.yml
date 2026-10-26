@@ -1,0 +1,33 @@
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  # Reference implementations and the split-K merge math, on CPU.
+  reference-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install torch --index-url https://download.pytorch.org/whl/cpu
+      - run: pip install pytest numpy
+      - run: PYTHONPATH=. pytest -q tests/test_reference.py
+
+  # Compile every CUDA kernel for sm_80 / sm_89 / sm_90 (no GPU needed) and
+  # fail on compile errors; ptxas register/spill counts are printed.
+  cuda-compile:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - run: pip install nvidia-cuda-nvcc nvidia-cuda-runtime nvidia-cuda-cccl
+      - name: compile kernels
+        run: |
+          NVCC="$(python -c 'import nvidia, os; print(os.path.join(nvidia.__path__[0], "cu13", "bin", "nvcc"))')"
+          NVCC="$NVCC" bash tools/compile_check.sh

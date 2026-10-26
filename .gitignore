@@ -1,0 +1,13 @@
+__pycache__/
+*.py[cod]
+*.so
+*.o
+build/
+dist/
+*.egg-info/
+.pytest_cache/
+.venv/
+venv/
+results/profiles/
+results/.parity_*.json
+results/.e2e_*.json

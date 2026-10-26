@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=68", "wheel", "torch>=2.4"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "decode-kernels"
+version = "0.1.0"
+description = "CUDA kernels for LLM decoding: paged attention (flash-decoding), tensor-core GEMM, fused RMSNorm and SwiGLU, with a vLLM plugin"
+readme = "README.md"
+license = { text = "MIT" }
+authors = [{ name = "Jaya Chandra Dadi" }]
+requires-python = ">=3.10"
+dependencies = ["torch>=2.4"]
+
+[project.optional-dependencies]
+test = ["pytest>=8", "numpy"]
+bench = ["flashinfer-python", "pandas"]
+vllm = ["vllm"]
+
+# vLLM loads every "vllm.general_plugins" entry point in all of its processes.
+# The plugin does nothing unless DECODE_KERNELS_VLLM=1 is set.
+[project.entry-points."vllm.general_plugins"]
+decode_kernels = "decode_kernels.vllm_plugin:register"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = ["gpu: needs a CUDA GPU and the compiled extension"]
